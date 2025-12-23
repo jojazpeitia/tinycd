@@ -89,7 +89,7 @@ export default function Scene() {
 
         {/* Rim light - from behind */}
         <directionalLight position={[0, -5, -5]} intensity={1.5}/>
-        
+
         {/* Left directional light */}
         <directionalLight position={[-6, 2, 3]} intensity={1.5}/>
 
@@ -100,7 +100,7 @@ export default function Scene() {
             </Center>
         </Suspense>
 
-        <OrbitControls rotateSpeed={1.5} enableZoom={false} />
+        <OrbitControls rotateSpeed={1.5} enableZoom={false} enablePan={false} />
     </Canvas>
   )
 }

@@ -39,7 +39,7 @@ function ResponsiveCamera() {
 
     if (isMobile) {
       camera.position.set(0, 0, 4) 
-      camera.fov = 110 
+      camera.fov = 90
     } else {
       camera.position.set(0, 0, 4)
       camera.fov = 75
@@ -85,7 +85,7 @@ export default function Scene() {
                 <Shelf />
             </Center>
         </Suspense>
-        <OrbitControls enableDamping enableZoom={false} />
+        <OrbitControls rotateSpeed={1.5} enableZoom={false} />
     </Canvas>
   )
 }

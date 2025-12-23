@@ -3,12 +3,12 @@
   --foreground: #171717;
 }
 
-@media (prefers-color-scheme: dark) {
+/* @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
   }
-}
+} */
 
 html,
 body {
@@ -65,12 +65,30 @@ a {
   font-family: var(--font-serif);
   letter-spacing: -0.02em;
 
-  /* IMPORTANT: allows OrbitControls interaction */
+  pointer-events: none;
+}
+
+.hint-toggle {
+  position: absolute;
+  opacity: 0;
   pointer-events: none;
 }
 
 .hint-close {
+  pointer-events: auto;
+  cursor: pointer;
   opacity: 0.5;
+}
+
+.hint-close:hover {
+  opacity: 0.8;
+}
+
+.hint-toggle:checked + .hint {
+  opacity: 0;
+  transform: translateX(-50%) translateY(-6px);
+  pointer-events: none;
+  display: none;
 }
 
 @media (max-width: 768px) {

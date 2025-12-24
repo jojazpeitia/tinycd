@@ -29,6 +29,6 @@
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
     "**/*.mts"
-, "app/components/Scene.jsx"  ],
+, "app/components/Scene.tsx"  ],
   "exclude": ["node_modules"]
 }

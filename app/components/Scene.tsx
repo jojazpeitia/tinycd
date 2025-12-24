@@ -1,7 +1,7 @@
 'use client'
 import * as THREE from 'three'
-import { Suspense, useEffect, useMemo, useLayoutEffect } from 'react'
-import { Canvas, useThree } from '@react-three/fiber'
+import { Suspense, useState, useEffect, useMemo, useRef, useLayoutEffect } from 'react'
+import { Canvas, useThree, ThreeEvent } from '@react-three/fiber'
 import { SkeletonUtils } from 'three-stdlib'
 import {
   OrbitControls,
@@ -20,31 +20,13 @@ type Album = {
 }
 
 const albums: Album[] = [
-  {
-    id: '1',
-    artist: 'Artist',
-    title: 'Album',
-    upc: '1',
-    coverUrl: '/textures/front_col.png',
-  },
-  {
-    id: '2',
-    artist: 'Flippers',
-    title: 'Three Cheers For Our Side',
-    upc: '2',
-    coverUrl: '/textures/front_three.jpg',
-  },
-  {
-    id: '3',
-    artist: 'Daft Punk',
-    title: 'Discovery',
-    upc: '3',
-    coverUrl: '/textures/front_discovery.png',
-  }
+  { id: '1',artist: 'Artist', title: 'Album', upc: '1', coverUrl: '/textures/front_col.png'},
+  { id: '2', artist: 'Flippers', title: 'Three Cheers For Our Side', upc: '2', coverUrl: '/textures/front_three.jpg'},
+  { id: '3', artist: 'Daft Punk', title: 'Discovery', upc: '3', coverUrl: '/textures/front_discovery.png' },
 ]
 
 
-function JewelCaseItem({ album, position }: { album: Album, position: [number, number, number] }) {
+function JewelCaseItem({ album, position, onSelect }: { album: Album, position: [number, number, number], onSelect: (album: Album) => void }) {
   const gltf = useGLTF('/models/jewelcase.glb')
 
   // Load replacement texture
@@ -56,7 +38,7 @@ function JewelCaseItem({ album, position }: { album: Album, position: [number, n
     coverTex.needsUpdate = true
   }, [coverTex])
 
-    // Clone per item so each can have its own material/texture
+  // Clone per item so each can have its own material/texture
   const scene = useMemo(() => SkeletonUtils.clone(gltf.scene) as THREE.Object3D, [gltf.scene])
 
   useLayoutEffect(() => {
@@ -77,10 +59,19 @@ function JewelCaseItem({ album, position }: { album: Album, position: [number, n
         mat.map = coverTex
         mat.needsUpdate = true
       }
+
     })
   }, [scene, coverTex])
 
-  return <primitive object={scene} scale={10} position={position}/>
+  const handleClick = (e: ThreeEvent<PointerEvent>) => {
+    // Only respond if this object is the first intersection
+    if (e.intersections[0]?.object === e.object) {
+      e.stopPropagation()
+      onSelect(album)
+    }
+  }
+
+  return <primitive object={scene} scale={10} position={position} onClick={handleClick}/>
 }
 
 function Shelf() {
@@ -95,63 +86,179 @@ function ResponsiveCamera() {
   useEffect(() => {
     const isMobile = size.width < 768
 
-    if (isMobile) {
-      camera.position.set(0, 0, 4) 
-      if (camera instanceof THREE.PerspectiveCamera) {
-        camera.fov = 90
-      }
-    } else {
-      camera.position.set(0, 0, 4)
-      if (camera instanceof THREE.PerspectiveCamera) {
-        camera.fov = 75
-      }
-    }
+    camera.position.set(0, 0, 4)
+
+    if (camera instanceof THREE.PerspectiveCamera) camera.fov = isMobile ? 90 : 75
 
     camera.updateProjectionMatrix()
+
   }, [camera, size])
 
   return null
 }
 
-export default function Scene() {
-  const spacing = 0.4
-  const startX = 0.6
-
+function InspectScene({ album }: { album: Album }) {
   return (
-    <Canvas>
-        <ResponsiveCamera />
+    <Canvas camera={{ position: [0, 0, 3.2], fov: 45 }}>
+      <ambientLight intensity={0.6} />
+      <directionalLight position={[5, 5, 5]} intensity={2.2} />
+      <directionalLight position={[-5, 2, 2]} intensity={0.8} />
 
-        <ambientLight intensity={0.4} />
+      <Suspense fallback={null}>
+        <Center>
+          <JewelCaseItem album={album} position={[0, 0, 0]} onSelect={() => {}} />
+        </Center>
+      </Suspense>
 
-        {/* Key light - main light from top-front */}
-        <directionalLight position={[5, 5, 5]} intensity={2.5} castShadow/>
-
-        {/* Fill light - softer light from the side */}
-        <directionalLight position={[-5, 3, 2]} intensity={0.5}/>
-
-        {/* Rim light - from behind */}
-        <directionalLight position={[0, -5, -5]} intensity={1.5}/>
-
-        {/* Left directional light */}
-        <directionalLight position={[-6, 2, 3]} intensity={1.5}/>
-
-        <Suspense fallback={null}>
-            <Center>
-                {albums.map((album, i) => (
-                  <JewelCaseItem
-                    key={album.id}
-                    album={album}
-                    position={[startX + i * spacing, 0, 0]}
-                  />
-                ))}
-                <Shelf />
-            </Center>
-        </Suspense>
-
-        <OrbitControls rotateSpeed={1.5} enableZoom={false} enablePan={false} />
+      <OrbitControls rotateSpeed={1.2} enableZoom enablePan />
     </Canvas>
   )
 }
 
-// useGLTF.preload('/models/jewelcase.glb')
+function InspectModal({album, onClose, }: { album: Album, onClose: () => void }) {
+
+  // esc to close
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [onClose])
+
+  return (
+    <div
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 50,
+      }}
+      // click outside closes
+      onPointerDown={onClose} 
+    >
+      {/* blur + dim layer */}
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          backdropFilter: 'blur(10px)',
+          WebkitBackdropFilter: 'blur(10px)',
+          background: 'rgba(0,0,0,0.35)',
+        }}
+      />
+
+      {/* modal card */}
+      <div
+        onPointerDown={(e) => e.stopPropagation()} // prevent close when interacting inside
+        style={{
+          position: 'absolute',
+          left: '50%',
+          top: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: 'min(900px, 92vw)',
+          height: 'min(620px, 82vh)',
+          borderRadius: 18,
+          overflow: 'hidden',
+          background: 'rgba(15,15,18,0.75)',
+          border: '1px solid rgba(255,255,255,0.12)',
+          boxShadow: '0 20px 80px rgba(0,0,0,0.45)',
+        }}
+      >
+        {/* header */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '12px 14px',
+            borderBottom: '1px solid rgba(255,255,255,0.10)',
+            color: 'white',
+            fontFamily: 'system-ui, -apple-system, Segoe UI, Roboto, sans-serif',
+          }}
+        >
+          <div style={{ minWidth: 0 }}>
+            <div style={{ fontSize: 14, opacity: 0.9, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              {album.artist}
+            </div>
+            <div style={{ fontSize: 16, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              {album.title}
+            </div>
+          </div>
+
+          <button
+            onClick={onClose}
+            style={{
+              cursor: 'pointer',
+              border: '1px solid rgba(255,255,255,0.18)',
+              background: 'rgba(255,255,255,0.06)',
+              color: 'white',
+              padding: '8px 10px',
+              borderRadius: 10,
+            }}
+          >
+            Close ✕
+          </button>
+        </div>
+
+        {/* viewer */}
+        <div style={{ width: '100%', height: 'calc(100% - 54px)' }}>
+          <InspectScene album={album} />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export default function Scene() {
+  const spacing = 0.2
+  const startX = 0.6
+  const [selected, setSelected] = useState<Album | null>(null)
+
+  // lock scroll while modal open
+  useEffect(() => {
+    if (!selected) return
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = prev
+    }
+  }, [selected])  
+
+  return (
+    <div style={{ position: 'relative', width: '100%', height: '100vh' }}>
+      {/* background shelf scene */}
+      <div style={{ width: '100%', height: '100%', filter: selected ? 'blur(6px)' : 'none', transition: 'filter 180ms ease' }}>
+        <Canvas>
+          <ResponsiveCamera />
+
+          <ambientLight intensity={0.4} />
+          <directionalLight position={[5, 5, 5]} intensity={2.5} />
+          <directionalLight position={[-5, 3, 2]} intensity={0.5} />
+          <directionalLight position={[0, -5, -5]} intensity={1.5} />
+          <directionalLight position={[-6, 2, 3]} intensity={1.5} />
+
+          <Suspense fallback={null}>
+            <Center>
+              {albums.map((album, i) => (
+                <JewelCaseItem
+                  key={album.id}
+                  album={album}
+                  position={[startX + i * spacing, 0, 0]}
+                  onSelect={setSelected}
+                />
+              ))}
+              <Shelf />
+            </Center>
+          </Suspense>
+
+          <OrbitControls rotateSpeed={1.5} enableZoom={false} enablePan={false} />
+        </Canvas>
+      </div>
+
+      {/* overlay inspection */}
+      {selected && <InspectModal album={selected} onClose={() => setSelected(null)} />}
+    </div>
+  )
+}
+useGLTF.preload('/models/jewelcase.glb')
 useGLTF.preload('/models/shelf.glb')

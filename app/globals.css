@@ -60,10 +60,11 @@ a {
   border-radius: 999px;
 
   background: #F5F5F5;
-  color: #686868;
-  font-size: 1.05rem;
+
+  color: #333;
+  font-size: 1.2rem;
   font-family: var(--font-serif);
-  letter-spacing: -0.02em;
+  letter-spacing: -0.0625rem;
 
   pointer-events: none;
 }
@@ -81,7 +82,7 @@ a {
 }
 
 .hint-close:hover {
-  opacity: 0.8;
+  opacity: 1;
 }
 
 .hint-toggle:checked + .hint {

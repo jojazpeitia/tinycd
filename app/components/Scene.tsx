@@ -17,63 +17,15 @@ type Album = {
   artist: string
   title: string
   upc: string
-  coverUrl: string // e.g. "/covers/album1.jpg" or remote URL
+  bookletUrl: string // <— used for BOTH booklet front + back
 }
 
 const albums: Album[] = [
-  { id: '1',artist: 'Artist', title: 'Album', upc: '1', coverUrl: '/textures/front_col.png'},
-  { id: '2', artist: 'Flippers', title: 'Three Cheers For Our Side', upc: '2', coverUrl: '/textures/front_three.jpg'},
-  { id: '3', artist: 'Daft Punk', title: 'Discovery', upc: '3', coverUrl: '/textures/front_discovery.png' },
+  { id: '1', artist: 'Cap\'n Jazz', title: 'Analphabetapolothology', upc: '1', bookletUrl: '/textures/analphabetapolothology_uv_grid_booklet.png' },
+  { id: '2', artist: 'Daft Punk', title: 'Discovery', upc: '2', bookletUrl: '/textures/discovery_uv_grid_booklet.png' },
+  { id: '3', artist: 'Descendents', title: 'Milo Goes To College', upc: '3', bookletUrl: '/textures/milo_uv_grid_booklet.png' },
+  { id: '4', artist: "Flipper's Guitar", title: 'Three Cheers For Our Side', upc: '4', bookletUrl: '/textures/three_cheer_uv_grid_booklet.png' },
 ]
-
-
-function JewelCaseItem({ album, position, onSelect }: { album: Album, position: [number, number, number], onSelect: (album: Album) => void }) {
-  const gltf = useGLTF('/models/jewelcase.glb')
-
-  // Load replacement texture
-  const coverTex = useTexture(album.coverUrl)
-
-  useMemo(() => {
-    coverTex.flipY = false
-    coverTex.colorSpace = THREE.SRGBColorSpace
-    coverTex.needsUpdate = true
-  }, [coverTex])
-
-  // Clone per item so each can have its own material/texture
-  const scene = useMemo(() => SkeletonUtils.clone(gltf.scene) as THREE.Object3D, [gltf.scene])
-
-  useLayoutEffect(() => {
-    scene.traverse((obj) => {
-      if (!(obj as THREE.Mesh).isMesh) return
-      const mesh = obj as THREE.Mesh
-
-      // Optional: make sure we can edit per-mesh materials safely
-      if (Array.isArray(mesh.material)) {
-        mesh.material = mesh.material.map((m) => m.clone())
-      } else {
-        mesh.material = (mesh.material as THREE.Material).clone()
-      }
-
-      // 🔥 Target the cover material by name (yours is "cover.001")
-      const mat = mesh.material as THREE.MeshStandardMaterial
-      if (mat?.name === 'cover.001') {
-        mat.map = coverTex
-        mat.needsUpdate = true
-      }
-
-    })
-  }, [scene, coverTex])
-
-  const handleClick = (e: ThreeEvent<PointerEvent>) => {
-    // Only respond if this object is the first intersection
-    if (e.intersections[0]?.object === e.object) {
-      e.stopPropagation()
-      onSelect(album)
-    }
-  }
-
-  return <primitive object={scene} scale={10} position={position} onClick={handleClick}/>
-}
 
 function Shelf() {
   const { scene } = useGLTF('/models/shelf.glb')
@@ -81,10 +33,19 @@ function Shelf() {
   return <primitive object={scene} scale={10}/>
 }
 
-function TurboJewelCase({ bookletUrl }: { bookletUrl: string }) {
+function TurboJewelCaseItem({
+  album,
+  position,
+  onSelect,
+}: {
+  album: Album
+  position: [number, number, number]
+  onSelect: (album: Album) => void
+}) {
   const gltf = useGLTF('/models/turbo_jewelcase.glb')
 
-  const bookletTex = useTexture(bookletUrl)
+  // ONE texture used by BOTH booklet front/back
+  const bookletTex = useTexture(album.bookletUrl)
 
   useMemo(() => {
     bookletTex.flipY = false
@@ -92,49 +53,101 @@ function TurboJewelCase({ bookletUrl }: { bookletUrl: string }) {
     bookletTex.needsUpdate = true
   }, [bookletTex])
 
-  // IMPORTANT: clone once so editing doesn’t affect other instances / other models
-  const scene = useMemo(() => SkeletonUtils.clone(gltf.scene) as THREE.Object3D, [gltf.scene])
+  // clone per item
+  const scene = useMemo(
+    () => SkeletonUtils.clone(gltf.scene) as THREE.Object3D,
+    [gltf.scene]
+  )
 
   useLayoutEffect(() => {
     scene.traverse((obj) => {
       if (!(obj as THREE.Mesh).isMesh) return
       const mesh = obj as THREE.Mesh
 
-      // clone materials so we don't mutate shared refs
+      // IMPORTANT: avoid shared materials between instances
       if (Array.isArray(mesh.material)) {
         mesh.material = mesh.material.map((m) => m.clone())
         return
-      } else {
-        mesh.material = (mesh.material as THREE.Material).clone()
       }
 
       const mat = mesh.material as THREE.MeshStandardMaterial
+      const name = mat?.name ?? ''
 
-      // ---- JEWEL CASE PLASTIC ----
-      if (mat.name === 'Standard_CD_Jewel_Case_A_LP.001') {
-        mat.transparent = true
-        mat.opacity = 0.18
-        mat.roughness = 0.04
-        mat.metalness = 0
-        mat.depthWrite = false
-        mat.envMapIntensity = 1.1
-        mat.needsUpdate = true
+      // --- CLEAR PLASTIC (jewel case) ---
+      if (name === 'Standard_CD_Jewel_Case_A_LP.001') {
+        mesh.material = mat.clone()
+        const m = mesh.material as THREE.MeshStandardMaterial
+
+        m.transparent = true
+        m.opacity = 0.18
+        m.roughness = 0.04
+        m.metalness = 0
+        m.envMapIntensity = 1.1
+
+        // helps glass sorting; if you see weird “everything turns transparent”
+        // keep this ONLY on the plastic meshes
+        m.depthWrite = false
+        mesh.renderOrder = 2
+
+        m.needsUpdate = true
+        return
       }
 
-      // ---- BOOKLET (front + back share this material name) ----
-      if (mat.name === 'Standard_CD_Jewel_Case_Booklet.001') {
-        mat.map = bookletTex 
-        // mat.transparent = false
-        // mat.opacity = 1
-        // mat.roughness = 0.7 
-        // mat.metalness = 0
-        // mat.envMapIntensity = 0.25 
-        mat.needsUpdate = true
+      // --- BOOKLET (opaque paper/card) ---
+      if (name === 'Standard_CD_Jewel_Case_Booklet.001') {
+        mesh.material = mat.clone()
+        const m = mesh.material as THREE.MeshStandardMaterial
+
+        // Replace base color map (affects both booklet front/back meshes,
+        // because they share this SAME material name)
+        m.map = bookletTex
+
+        // Make it feel like paper (NOT plastic)
+        m.transparent = false
+        m.opacity = 1
+        m.roughness = 0.85
+        m.metalness = 0
+        m.envMapIntensity = 0.15
+
+        // booklet should write depth normally
+        m.depthWrite = true
+        mesh.renderOrder = 1
+
+        m.needsUpdate = true
+        return
       }
+
+      // (Optional) stop environment reflections on everything else in this model
+      // mat.envMapIntensity = 0
     })
   }, [scene, bookletTex])
 
-  return <primitive object={scene} scale={10} position={[-2, 0, 0]} />
+  const handlePointerOver = (e: ThreeEvent<PointerEvent>) => {
+    e.stopPropagation()
+    document.body.style.cursor = 'pointer'
+  }
+
+  const handlePointerOut = () => {
+    document.body.style.cursor = 'default'
+  }  
+
+  const handleClick = (e: ThreeEvent<PointerEvent>) => {
+    if (e.intersections[0]?.object === e.object) {
+      e.stopPropagation()
+      onSelect(album)
+    }
+  }
+
+  return ( 
+    <primitive
+      object={scene} 
+      scale={10} 
+      position={position} 
+      onClick={handleClick}
+      onPointerOver={handlePointerOver}
+      onPointerOut={handlePointerOut} 
+    />
+  )
 }
 
 function ResponsiveCamera() {
@@ -157,13 +170,11 @@ function ResponsiveCamera() {
 function InspectScene({ album }: { album: Album }) {
   return (
     <Canvas camera={{ position: [0, 0, 3.2], fov: 45 }}>
-      <ambientLight intensity={0.6} />
-      <directionalLight position={[5, 5, 5]} intensity={2.2} />
-      <directionalLight position={[-5, 2, 2]} intensity={0.8} />
+      <Environment preset="lobby" />
 
       <Suspense fallback={null}>
         <Center>
-          <JewelCaseItem album={album} position={[0, 0, 0]} onSelect={() => {}} />
+          <TurboJewelCaseItem album={album} position={[0, 0, 0]} onSelect={() => {}} />
         </Center>
       </Suspense>
 
@@ -174,7 +185,6 @@ function InspectScene({ album }: { album: Album }) {
 
 function InspectModal({album, onClose, }: { album: Album, onClose: () => void }) {
 
-  // esc to close
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose()
@@ -267,8 +277,8 @@ function InspectModal({album, onClose, }: { album: Album, onClose: () => void })
 }
 
 export default function Scene() {
-  const spacing = 0.2
-  const startX = 0.6
+  const spacing = 0.1
+  const startX = 0.1
   const [selected, setSelected] = useState<Album | null>(null)
 
   // lock scroll while modal open
@@ -288,25 +298,19 @@ export default function Scene() {
         <Canvas>
           <ResponsiveCamera />
 
-          {/* <ambientLight intensity={0.4} /> */}
-          {/* <directionalLight position={[5, 5, 5]} intensity={2.5} /> */}
-          {/* <directionalLight position={[-5, 3, 2]} intensity={0.5} /> */}
-          {/* <directionalLight position={[0, -5, -5]} intensity={1.5} /> */}
-          {/* <directionalLight position={[-6, 2, 3]} intensity={1.5} /> */}
           <Environment preset="lobby" />
 
           <Suspense fallback={null}>
             <Center>
-              {/* {albums.map((album, i) => (
-                <JewelCaseItem
+              {albums.map((album, i) => (
+                <TurboJewelCaseItem
                   key={album.id}
                   album={album}
                   position={[startX + i * spacing, 0, 0]}
                   onSelect={setSelected}
                 />
-              ))} */}
+              ))}
               <Shelf />
-              <TurboJewelCase bookletUrl="/textures/three_cheer_uv_grid_booklet.png" />
             </Center>
           </Suspense>
 
@@ -319,6 +323,5 @@ export default function Scene() {
     </div>
   )
 }
-useGLTF.preload('/models/jewelcase.glb')
 useGLTF.preload('/models/turbo_jewelcase.glb')
 useGLTF.preload('/models/shelf.glb')

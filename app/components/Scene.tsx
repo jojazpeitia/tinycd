@@ -25,6 +25,7 @@ const albums: Album[] = [
   { id: '2', artist: 'Daft Punk', title: 'Discovery', upc: '2', bookletUrl: '/textures/discovery_uv_grid_booklet.png' },
   { id: '3', artist: 'Descendents', title: 'Milo Goes To College', upc: '3', bookletUrl: '/textures/milo_uv_grid_booklet.png' },
   { id: '4', artist: "Flipper's Guitar", title: 'Three Cheers For Our Side', upc: '4', bookletUrl: '/textures/three_cheer_uv_grid_booklet.png' },
+  { id: '5', artist: "Justice", title: 'Cross', upc: '5', bookletUrl: '/textures/cross_uv_grid_booklet.png' },
 ]
 
 function Shelf() {

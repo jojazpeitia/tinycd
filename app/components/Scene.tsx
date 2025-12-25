@@ -294,6 +294,7 @@ export default function Scene() {
 
   return (
     <div style={{ position: 'relative', width: '100%', height: '100vh' }}>
+
       {/* background shelf scene */}
       <div style={{ width: '100%', height: '100%', filter: selected ? 'blur(6px)' : 'none', transition: 'filter 180ms ease' }}>
         <Canvas>
@@ -315,7 +316,7 @@ export default function Scene() {
             </Center>
           </Suspense>
 
-          <OrbitControls rotateSpeed={1.5} enableZoom={false} enablePan={false} />
+          <OrbitControls rotateSpeed={1.5} enableZoom={true} enablePan={false} />
         </Canvas>
       </div>
 

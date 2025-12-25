@@ -1,4 +1,7 @@
+'use client'
+
 import Scene from './components/Scene'
+import SignUp from './components/SignUp'
 
 export default function Home() {
   return (
@@ -10,6 +13,7 @@ export default function Home() {
         <label htmlFor="hint-toggle" className="hint-close"> x </label>
       </div>
 
+      <SignUp onContinue={() => console.log('open auth later')} />
       <Scene />
     </main>
   )

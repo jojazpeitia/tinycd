@@ -7,7 +7,8 @@ import {
   OrbitControls,
   useGLTF,
   Center,
-  useTexture
+  useTexture,
+  Environment
 } from '@react-three/drei'
 
 // prototype array structure for albums
@@ -78,6 +79,62 @@ function Shelf() {
   const { scene } = useGLTF('/models/shelf.glb')
   
   return <primitive object={scene} scale={10}/>
+}
+
+function TurboJewelCase({ bookletUrl }: { bookletUrl: string }) {
+  const gltf = useGLTF('/models/turbo_jewelcase.glb')
+
+  const bookletTex = useTexture(bookletUrl)
+
+  useMemo(() => {
+    bookletTex.flipY = false
+    bookletTex.colorSpace = THREE.SRGBColorSpace
+    bookletTex.needsUpdate = true
+  }, [bookletTex])
+
+  // IMPORTANT: clone once so editing doesn’t affect other instances / other models
+  const scene = useMemo(() => SkeletonUtils.clone(gltf.scene) as THREE.Object3D, [gltf.scene])
+
+  useLayoutEffect(() => {
+    scene.traverse((obj) => {
+      if (!(obj as THREE.Mesh).isMesh) return
+      const mesh = obj as THREE.Mesh
+
+      // clone materials so we don't mutate shared refs
+      if (Array.isArray(mesh.material)) {
+        mesh.material = mesh.material.map((m) => m.clone())
+        return
+      } else {
+        mesh.material = (mesh.material as THREE.Material).clone()
+      }
+
+      const mat = mesh.material as THREE.MeshStandardMaterial
+
+      // ---- JEWEL CASE PLASTIC ----
+      if (mat.name === 'Standard_CD_Jewel_Case_A_LP.001') {
+        mat.transparent = true
+        mat.opacity = 0.18
+        mat.roughness = 0.04
+        mat.metalness = 0
+        mat.depthWrite = false
+        mat.envMapIntensity = 1.1
+        mat.needsUpdate = true
+      }
+
+      // ---- BOOKLET (front + back share this material name) ----
+      if (mat.name === 'Standard_CD_Jewel_Case_Booklet.001') {
+        mat.map = bookletTex 
+        // mat.transparent = false
+        // mat.opacity = 1
+        // mat.roughness = 0.7 
+        // mat.metalness = 0
+        // mat.envMapIntensity = 0.25 
+        mat.needsUpdate = true
+      }
+    })
+  }, [scene, bookletTex])
+
+  return <primitive object={scene} scale={10} position={[-2, 0, 0]} />
 }
 
 function ResponsiveCamera() {
@@ -231,23 +288,25 @@ export default function Scene() {
         <Canvas>
           <ResponsiveCamera />
 
-          <ambientLight intensity={0.4} />
-          <directionalLight position={[5, 5, 5]} intensity={2.5} />
-          <directionalLight position={[-5, 3, 2]} intensity={0.5} />
-          <directionalLight position={[0, -5, -5]} intensity={1.5} />
-          <directionalLight position={[-6, 2, 3]} intensity={1.5} />
+          {/* <ambientLight intensity={0.4} /> */}
+          {/* <directionalLight position={[5, 5, 5]} intensity={2.5} /> */}
+          {/* <directionalLight position={[-5, 3, 2]} intensity={0.5} /> */}
+          {/* <directionalLight position={[0, -5, -5]} intensity={1.5} /> */}
+          {/* <directionalLight position={[-6, 2, 3]} intensity={1.5} /> */}
+          <Environment preset="lobby" />
 
           <Suspense fallback={null}>
             <Center>
-              {albums.map((album, i) => (
+              {/* {albums.map((album, i) => (
                 <JewelCaseItem
                   key={album.id}
                   album={album}
                   position={[startX + i * spacing, 0, 0]}
                   onSelect={setSelected}
                 />
-              ))}
+              ))} */}
               <Shelf />
+              <TurboJewelCase bookletUrl="/textures/three_cheer_uv_grid_booklet.png" />
             </Center>
           </Suspense>
 
@@ -261,4 +320,5 @@ export default function Scene() {
   )
 }
 useGLTF.preload('/models/jewelcase.glb')
+useGLTF.preload('/models/turbo_jewelcase.glb')
 useGLTF.preload('/models/shelf.glb')

@@ -11,6 +11,7 @@ import {
   useTexture,
   Environment
 } from '@react-three/drei'
+import Hint from './Hint'
 
 // prototype array structure for albums
 type Album = {
@@ -236,12 +237,12 @@ export default function Scene() {
 
   return (
     <div style={{ position: 'relative', width: '100%', height: '100vh' }}>
-
-      {/* SignUp is rendered here due to selected */}
-      {!selected && <SignUp onContinue={() => console.log('open auth later')} />}
-
       {/* background shelf scene */}
       <div style={{ width: '100%', height: '100%', filter: selected ? 'blur(6px)' : 'none', transition: 'filter 180ms ease' }}>
+        <Hint />
+
+        <SignUp onContinue={() => console.log('open auth later')} />
+          
         <Canvas>
           <ResponsiveCamera />
 

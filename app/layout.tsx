@@ -25,7 +25,7 @@ const ebGaramond = EB_Garamond({
 
 export const metadata: Metadata = {
   title: "tinycd",
-  description: "your virtual cd collection",
+  description: "the tiniest CD collection",
 };
 
 export default function RootLayout({

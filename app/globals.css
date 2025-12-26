@@ -42,6 +42,106 @@ a {
   }
 }
 
+/* ===== Inspect Modal ===== */
+.inspectOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+}
+
+.inspectBackdrop {
+  position: absolute;
+  inset: 0;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  /* background: rgba(0, 0, 0, 0.35); */
+}
+
+.inspectCard {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(900px, 92vw);
+  height: min(620px, 82vh);
+  border-radius: 18px;
+  overflow: hidden;
+  /* background: rgba(15, 15, 18, 0.75); */
+  /* background: rgba(15, 15, 18, 0.13); */
+  background: rgba(165, 165, 165, 0.13);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.inspectHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.10);
+  color: #333;
+}
+
+.inspectHeaderLeft {
+  min-width: 0;
+  
+  font-family: var(--font-serif);
+  letter-spacing: -0.0625rem;
+  font-size: 1.2rem;
+
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.inspectArtist {
+  font-weight: 400;
+  color: #666;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.inspectDash {
+  color: #666;
+  /* font-size: 14px;
+  line-height: 1;
+  opacity: 0.5;
+  margin: 2px 0; */
+}
+
+.inspectTitle {
+  font-weight: 400;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.inspectCloseBtn {
+  cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.06);
+  padding: 8px 10px;
+  border-radius: 10px;
+
+  font-family: var(--font-serif);
+  font-size: 1.2rem;
+  font-weight: lighter;
+
+  opacity: 0.5;
+}
+
+.inspectCloseBtn:hover {
+  opacity: 1;
+}
+
+.inspectViewer {
+  width: 100%;
+  height: calc(100% - 54px);
+}
+
+/* ===== Hint Bubble ===== */
 .hint {
   position: absolute;
   top: 20px;

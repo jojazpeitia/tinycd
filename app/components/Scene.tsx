@@ -184,8 +184,7 @@ function InspectScene({ album }: { album: Album }) {
   )
 }
 
-function InspectModal({album, onClose, }: { album: Album, onClose: () => void }) {
-
+function InspectModal({ album, onClose }: { album: Album; onClose: () => void }) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose()
@@ -195,81 +194,23 @@ function InspectModal({album, onClose, }: { album: Album, onClose: () => void })
   }, [onClose])
 
   return (
-    <div
-      style={{
-        position: 'fixed',
-        inset: 0,
-        zIndex: 50,
-      }}
-      // click outside closes
-      onPointerDown={onClose} 
-    >
-      {/* blur + dim layer */}
-      <div
-        style={{
-          position: 'absolute',
-          inset: 0,
-          backdropFilter: 'blur(10px)',
-          WebkitBackdropFilter: 'blur(10px)',
-          background: 'rgba(0,0,0,0.35)',
-        }}
-      />
+    <div className="inspectOverlay" onPointerDown={onClose}>
+      <div className="inspectBackdrop" />
 
-      {/* modal card */}
-      <div
-        onPointerDown={(e) => e.stopPropagation()} // prevent close when interacting inside
-        style={{
-          position: 'absolute',
-          left: '50%',
-          top: '50%',
-          transform: 'translate(-50%, -50%)',
-          width: 'min(900px, 92vw)',
-          height: 'min(620px, 82vh)',
-          borderRadius: 18,
-          overflow: 'hidden',
-          background: 'rgba(15,15,18,0.75)',
-          border: '1px solid rgba(255,255,255,0.12)',
-          boxShadow: '0 20px 80px rgba(0,0,0,0.45)',
-        }}
-      >
-        {/* header */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '12px 14px',
-            borderBottom: '1px solid rgba(255,255,255,0.10)',
-            color: 'white',
-            fontFamily: 'system-ui, -apple-system, Segoe UI, Roboto, sans-serif',
-          }}
-        >
-          <div style={{ minWidth: 0 }}>
-            <div style={{ fontSize: 14, opacity: 0.9, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              {album.artist}
-            </div>
-            <div style={{ fontSize: 16, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              {album.title}
-            </div>
+      <div className="inspectCard" onPointerDown={(e) => e.stopPropagation()}>
+        <div className="inspectHeader">
+          <div className="inspectHeaderLeft">
+            <div className="inspectArtist">{album.artist}</div>
+            <div className="inspectDash">—</div>
+            <div className="inspectTitle">{album.title}</div>
           </div>
 
-          <button
-            onClick={onClose}
-            style={{
-              cursor: 'pointer',
-              border: '1px solid rgba(255,255,255,0.18)',
-              background: 'rgba(255,255,255,0.06)',
-              color: 'white',
-              padding: '8px 10px',
-              borderRadius: 10,
-            }}
-          >
-            Close ✕
+          <button className="inspectCloseBtn" onClick={onClose}>
+            ✕
           </button>
         </div>
 
-        {/* viewer */}
-        <div style={{ width: '100%', height: 'calc(100% - 54px)' }}>
+        <div className="inspectViewer">
           <InspectScene album={album} />
         </div>
       </div>

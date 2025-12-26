@@ -27,9 +27,10 @@ type Album = {
 const albums: Album[] = [
   { id: '1', artist: 'Cap\'n Jazz', title: 'Analphabetapolothology', upc: '1', bookletUrl: '/textures/analphabetapolothology_uv_grid_booklet.png' },
   { id: '2', artist: 'Daft Punk', title: 'Discovery', upc: '2', bookletUrl: '/textures/discovery_uv_grid_booklet.png' },
-  { id: '3', artist: 'Descendents', title: 'Milo Goes To College', upc: '3', bookletUrl: '/textures/milo_uv_grid_booklet.png' },
-  { id: '4', artist: "Flipper's Guitar", title: 'Three Cheers For Our Side', upc: '4', bookletUrl: '/textures/three_cheer_uv_grid_booklet.png' },
-  { id: '5', artist: "Justice", title: 'Cross', upc: '5', bookletUrl: '/textures/cross_uv_grid_booklet.png' },
+  { id: '3', artist: 'Daft Punk', title: 'Homework', upc: '3', bookletUrl: '/textures/homework_uv_grid_booklet.png' },
+  { id: '4', artist: 'Descendents', title: 'Milo Goes To College', upc: '4', bookletUrl: '/textures/milo_uv_grid_booklet.png' },
+  { id: '5', artist: "Flipper's Guitar", title: 'Three Cheers For Our Side', upc: '5', bookletUrl: '/textures/three_cheer_uv_grid_booklet.png' },
+  { id: '6', artist: "Justice", title: 'Cross', upc: '6', bookletUrl: '/textures/cross_uv_grid_booklet.png' },
 ]
 
 function RenderGate({ onReady }: { onReady: () => void }) {

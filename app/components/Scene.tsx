@@ -1,17 +1,19 @@
 'use client'
 import * as THREE from 'three'
 import { Suspense, useState, useEffect, useMemo, useRef, useLayoutEffect } from 'react'
-import { Canvas, useThree, ThreeEvent } from '@react-three/fiber'
+import { Canvas, useThree, ThreeEvent, useFrame } from '@react-three/fiber'
 import { SkeletonUtils } from 'three-stdlib'
-import SignUp from './SignUp'
 import {
   OrbitControls,
   useGLTF,
   Center,
   useTexture,
-  Environment
+  Environment,
+  useProgress
 } from '@react-three/drei'
+
 import Hint from './Hint'
+import SignUp from './SignUp'
 
 // prototype array structure for albums
 type Album = {
@@ -29,6 +31,104 @@ const albums: Album[] = [
   { id: '4', artist: "Flipper's Guitar", title: 'Three Cheers For Our Side', upc: '4', bookletUrl: '/textures/three_cheer_uv_grid_booklet.png' },
   { id: '5', artist: "Justice", title: 'Cross', upc: '5', bookletUrl: '/textures/cross_uv_grid_booklet.png' },
 ]
+
+function RenderGate({ onReady }: { onReady: () => void }) {
+  const fired = useRef(false)
+
+  useFrame(() => {
+    if (fired.current) return
+    fired.current = true
+    onReady()
+  })
+
+  return null
+}
+
+function LoadingOverlay({
+  renderReady,
+  onDone,
+}: {
+  renderReady: boolean
+  onDone: () => void
+}) {
+  const { active, progress, loaded, total, item } = useProgress()
+
+  const [shown, setShown] = useState(0)
+  const maxTarget = useRef(0)
+  const doneCalled = useRef(false)
+  const finalizedAt = useRef<number | null>(null)
+
+  // record the moment assets finish
+  useEffect(() => {
+    if (!active && progress >= 100 && finalizedAt.current == null) {
+      finalizedAt.current = performance.now()
+    }
+  }, [active, progress])
+
+  // compute a target that keeps moving while we wait for first render
+  const target = useMemo(() => {
+    const p = Math.min(100, progress || 0)
+
+    // While loading assets, cap at 95 so we have room to "finalize"
+    if (active) return p * 0.95
+
+    // Assets loaded but not rendered yet: creep from 95 → 99.5 over ~500ms
+    if (!renderReady) {
+      const t0 = finalizedAt.current ?? performance.now()
+      const t = Math.min(1, (performance.now() - t0) / 500)
+      return 95 + t * 4.5
+    }
+
+    // Render happened: finish to 100
+    return 100
+  }, [active, progress, renderReady])
+
+  // keep target monotonic
+  useEffect(() => {
+    maxTarget.current = Math.max(maxTarget.current, target)
+  }, [target])
+
+  // smooth shown -> target
+  useEffect(() => {
+    let raf = 0
+    const tick = () => {
+      setShown((p) => p + (maxTarget.current - p) * 0.12)
+      raf = requestAnimationFrame(tick)
+    }
+    raf = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf)
+  }, [])
+
+  // only complete when BOTH: assets are done AND we've rendered at least one frame
+  useEffect(() => {
+    const assetsDone = !active && progress >= 100
+    const ready = assetsDone && renderReady
+
+    if (!ready || doneCalled.current) return
+    doneCalled.current = true
+
+    // tiny delay so user sees 100% briefly
+    const t = window.setTimeout(onDone, 180)
+    return () => window.clearTimeout(t)
+  }, [active, progress, renderReady, onDone])
+
+  const pct = Math.min(100, Math.round(shown))
+
+  return (
+    <div className="loadingOverlay">
+      <div className="loadingCard">
+        <div className="loadingPct">{pct}%</div>
+        <div className="loadingMeta">
+          <span>{loaded}/{total}</span>
+          <span className="loadingDot">•</span>
+          <span className="loadingItem">
+            {active ? (item ? `Loading: ${item}` : 'Loading assets…') : (renderReady ? 'Ready' : 'Finalizing…')}
+          </span>
+        </div>
+      </div>
+    </div>
+  )
+}
 
 function Shelf() {
   const { scene } = useGLTF('/models/shelf.glb')
@@ -225,6 +325,9 @@ export default function Scene() {
   const startX = 0.1
   const [selected, setSelected] = useState<Album | null>(null)
 
+  const [renderReady, setRenderReady] = useState(false)
+  const [booted, setBooted] = useState(false)
+
   // lock scroll while modal open
   useEffect(() => {
     if (!selected) return
@@ -237,12 +340,20 @@ export default function Scene() {
 
   return (
     <div style={{ position: 'relative', width: '100%', height: '100vh' }}>
+
+      {!booted && (
+        <LoadingOverlay
+          renderReady={renderReady}
+          onDone={() => setBooted(true)}
+        />
+      )}
+
       {/* background shelf scene */}
       <div style={{ width: '100%', height: '100%', filter: selected ? 'blur(6px)' : 'none', transition: 'filter 180ms ease' }}>
         <Hint />
 
         <SignUp onContinue={() => console.log('open auth later')} />
-          
+
         <Canvas>
           <ResponsiveCamera />
 
@@ -260,6 +371,7 @@ export default function Scene() {
               ))}
               <Shelf />
             </Center>
+            <RenderGate onReady={() => setRenderReady(true)} />
           </Suspense>
 
           <OrbitControls rotateSpeed={1.5} enableZoom={true} enablePan={false} />

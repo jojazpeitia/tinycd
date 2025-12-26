@@ -66,8 +66,6 @@ a {
   height: min(620px, 82vh);
   border-radius: 18px;
   overflow: hidden;
-  /* background: rgba(15, 15, 18, 0.75); */
-  /* background: rgba(15, 15, 18, 0.13); */
   background: rgba(165, 165, 165, 0.13);
   border: 1px solid rgba(255, 255, 255, 0.12);
 }
@@ -104,10 +102,6 @@ a {
 
 .inspectDash {
   color: #666;
-  /* font-size: 14px;
-  line-height: 1;
-  opacity: 0.5;
-  margin: 2px 0; */
 }
 
 .inspectTitle {
@@ -193,4 +187,51 @@ a {
   .hint {
     display: none;
   }
+}
+
+/* ===== Loading Overlay ===== */
+.loadingOverlay{
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: grid;
+  place-items: center;
+  backdrop-filter: blur(10px);
+
+  font-family: var(--font-serif);
+  font-size: 1.2rem;
+}
+
+.loadingCard{
+  width: min(420px, 86vw);
+  padding: 18px 18px 16px;
+  border-radius: 16px;
+  background: #F5F5F5;
+  border: 1px solid rgba(255,255,255,0.10);
+}
+
+.loadingPct{
+  font-size: 44px;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  margin-bottom: 12px;
+}
+
+.loadingMeta{
+  margin-top: 10px;
+  font-size: 12px;
+  opacity: 0.85;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.loadingDot{ opacity: 0.6; }
+
+.loadingItem{
+  overflow: hidden;
+  text-overflow: ellipsis;
 }

@@ -3,6 +3,7 @@ import * as THREE from 'three'
 import { Suspense, useState, useEffect, useMemo, useRef, useLayoutEffect } from 'react'
 import { Canvas, useThree, ThreeEvent } from '@react-three/fiber'
 import { SkeletonUtils } from 'three-stdlib'
+import SignUp from './SignUp'
 import {
   OrbitControls,
   useGLTF,
@@ -235,6 +236,9 @@ export default function Scene() {
 
   return (
     <div style={{ position: 'relative', width: '100%', height: '100vh' }}>
+
+      {/* SignUp is rendered here due to selected */}
+      {!selected && <SignUp onContinue={() => console.log('open auth later')} />}
 
       {/* background shelf scene */}
       <div style={{ width: '100%', height: '100%', filter: selected ? 'blur(6px)' : 'none', transition: 'filter 180ms ease' }}>

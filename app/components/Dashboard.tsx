@@ -207,10 +207,7 @@ export default function Dashboard({ user }: Props) {
                 </div>
 
                 <div className={styles.actions}>
-                  <button
-                    className={styles.actionBtn}
-                    onClick={() => alert('Manage account (coming soon)')}
-                  >
+                  <button className={styles.actionBtn} onClick={() => alert('Manage account (coming soon)')}>
                     <span className={styles.actionIcon}>⚙</span>
                     Manage account
                   </button>

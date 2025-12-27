@@ -17,6 +17,7 @@ import type { User } from '@supabase/supabase-js'
 import { createClient } from '../lib/supabase/client'
 import Hint from './Hint'
 import SignUp from './SignUp'
+import Dashboard from './Dashboard'
 
 // prototype array structure for albums
 type Album = {
@@ -36,21 +37,6 @@ const albums: Album[] = [
   { id: '6', artist: "Justice", title: 'Cross', upc: '6', bookletUrl: '/textures/cross_uv_grid_booklet.png' },
   { id: '7', artist: "Neutral Milk Hotel", title: 'In The Aeroplane Over The Sea', upc: '7', bookletUrl: '/textures/neutral_uv_grid_booklet.png' },
 ]
-
-function Dashboard({ user }: { user: User }) {
-  const supabase = createClient()
-  return (
-    <div style={{ position: 'absolute', right: 20, top: 20, zIndex: 30 }}>
-      <div style={{ background: '#fff', padding: 12, borderRadius: 12 }}>
-        <div style={{ fontSize: 12, opacity: 0.8 }}>Signed in as</div>
-        <div style={{ fontWeight: 600 }}>{user.email}</div>
-        <button onClick={() => supabase.auth.signOut()} style={{ marginTop: 10 }}>
-          Log out
-        </button>
-      </div>
-    </div>
-  )
-}
 
 function RenderGate({ onReady }: { onReady: () => void }) {
   const fired = useRef(false)

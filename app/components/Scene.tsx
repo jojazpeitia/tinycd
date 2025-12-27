@@ -31,6 +31,7 @@ const albums: Album[] = [
   { id: '4', artist: 'Descendents', title: 'Milo Goes To College', upc: '4', bookletUrl: '/textures/milo_uv_grid_booklet.png' },
   { id: '5', artist: "Flipper's Guitar", title: 'Three Cheers For Our Side', upc: '5', bookletUrl: '/textures/three_cheer_uv_grid_booklet.png' },
   { id: '6', artist: "Justice", title: 'Cross', upc: '6', bookletUrl: '/textures/cross_uv_grid_booklet.png' },
+  { id: '7', artist: "Neutral Milk Hotel", title: 'In The Aeroplane Over The Sea', upc: '7', bookletUrl: '/textures/neutral_uv_grid_booklet.png' },
 ]
 
 function RenderGate({ onReady }: { onReady: () => void }) {

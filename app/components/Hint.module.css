@@ -1,0 +1,53 @@
+/* ===== Hint Bubble ===== */
+.hint {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  padding: 8px 14px;
+  border-radius: 999px;
+
+  background: #F5F5F5;
+
+  color: #333;
+  font-size: 1.2rem;
+  font-family: var(--font-serif);
+  letter-spacing: -0.0625rem;
+
+  pointer-events: none;
+}
+
+.hint-toggle {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.hint-close {
+  pointer-events: auto;
+  cursor: pointer;
+  opacity: 0.5;
+}
+
+.hint-close:hover {
+  opacity: 1;
+}
+
+.hint-toggle:checked + .hint {
+  opacity: 0;
+  transform: translateX(-50%) translateY(-6px);
+  pointer-events: none;
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .hint {
+    display: none;
+  }
+}

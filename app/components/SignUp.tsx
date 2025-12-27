@@ -1,11 +1,18 @@
 'use client'
 import styles from './SignUp.module.css'
+import { createClient } from '../lib/supabase/client'
 
-type Props = {
-  onContinue?: () => void
-}
+export default function SignUp() {
+  const signInWithGoogle = async () => {
+    const supabase = createClient()
+    await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+      },
+    })
+  }
 
-export default function SignUp({ onContinue }: Props) {
   return (
     <div className={styles.wrapper}>
       <div className={styles.card}>
@@ -14,7 +21,7 @@ export default function SignUp({ onContinue }: Props) {
           <h2> — it&apos;s free</h2>
         </div>
 
-        <button className={styles.googleButton} onClick={onContinue}>
+        <button className={styles.googleButton} onClick={signInWithGoogle}>
           <img
             src="/icons/google.svg"
             alt="Google"

@@ -12,6 +12,9 @@ import {
   useProgress
 } from '@react-three/drei'
 
+
+import type { User } from '@supabase/supabase-js'
+import { createClient } from '../lib/supabase/client'
 import Hint from './Hint'
 import SignUp from './SignUp'
 
@@ -33,6 +36,21 @@ const albums: Album[] = [
   { id: '6', artist: "Justice", title: 'Cross', upc: '6', bookletUrl: '/textures/cross_uv_grid_booklet.png' },
   { id: '7', artist: "Neutral Milk Hotel", title: 'In The Aeroplane Over The Sea', upc: '7', bookletUrl: '/textures/neutral_uv_grid_booklet.png' },
 ]
+
+function Dashboard({ user }: { user: User }) {
+  const supabase = createClient()
+  return (
+    <div style={{ position: 'absolute', right: 20, top: 20, zIndex: 30 }}>
+      <div style={{ background: '#fff', padding: 12, borderRadius: 12 }}>
+        <div style={{ fontSize: 12, opacity: 0.8 }}>Signed in as</div>
+        <div style={{ fontWeight: 600 }}>{user.email}</div>
+        <button onClick={() => supabase.auth.signOut()} style={{ marginTop: 10 }}>
+          Log out
+        </button>
+      </div>
+    </div>
+  )
+}
 
 function RenderGate({ onReady }: { onReady: () => void }) {
   const fired = useRef(false)
@@ -330,6 +348,19 @@ export default function Scene() {
   const [renderReady, setRenderReady] = useState(false)
   const [booted, setBooted] = useState(false)
 
+  const [user, setUser] = useState<User | null>(null)
+  const supabase = createClient()
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setUser(data.user ?? null))
+
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null)
+    })
+
+    return () => sub.subscription.unsubscribe()
+  }, [])  
+
   // lock scroll while modal open
   useEffect(() => {
     if (!selected) return
@@ -354,7 +385,7 @@ export default function Scene() {
       <div style={{ width: '100%', height: '100%', filter: selected ? 'blur(6px)' : 'none', transition: 'filter 180ms ease' }}>
         <Hint />
 
-        <SignUp onContinue={() => console.log('open auth later')} />
+        {!user ? <SignUp /> : <Dashboard user={user} />}
 
         <Canvas>
           <ResponsiveCamera />
